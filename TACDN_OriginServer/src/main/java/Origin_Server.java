@@ -165,12 +165,14 @@ class ServerReq extends Thread{
     public void run() {
 
         String fileName;
+        String message = null;
         DataInputStream in;
         byte[] arr = new byte[5000];
         try {
             // Reading the file name from Cache Server
             in = new DataInputStream(clientSocket.getInputStream());
             fileName = in.readUTF();
+
             // calling the function to send the file back to the client
             gettingDatafromS3(s3, fileName);
             //read file from disk
