@@ -41,7 +41,7 @@ public class WorkerThread implements Runnable {
                             bw.write(String.valueOf(bb), 0, bb.length);
                         } else {
                             System.out.println("Content requested from origin server");
-                            Socket parentSoc = new Socket(cacheServer.getParentIPAdd(), 6000);
+                            Socket parentSoc = new Socket(cacheServer.getParentIPAdd(), 60000);
                             OutputStream out = parentSoc.getOutputStream();
                             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(out));
                             bw.write(msg, 0, msg.length());
