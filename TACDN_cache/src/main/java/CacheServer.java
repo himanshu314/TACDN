@@ -21,6 +21,9 @@ public class CacheServer {
         this.serverID = serverID;
         this.ipAdd = ipAdd;
         this.parentIPAdd = parentIPAdd;
+        this.contentList = new HashMap<String,CacheContent>();
+        this.sessionMap = new HashMap<String, ArrayList<String>>();
+        this.childrenIPAdd = new ArrayList<String>();
     }
 
     public String getServerID() {

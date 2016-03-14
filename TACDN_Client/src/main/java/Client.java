@@ -12,7 +12,7 @@ public class Client {
 
     Client(String fileName) {
         this.fileName = fileName;
-        csIp = "10.100.20.30";
+        csIp = "172.31.58.50";
     }
 
     /**
@@ -27,7 +27,8 @@ public class Client {
         BufferedOutputStream bos = null;
 
         try {
-            Socket socket = new Socket(csIp,60000);
+            System.out.println("Filename: " + fileName);
+            Socket socket = new Socket(csIp,6647);
             //send file name to content server
             OutputStream outputServer = socket.getOutputStream();
             DataOutputStream out = new DataOutputStream(outputServer);
