@@ -83,7 +83,6 @@ class ServerReq extends Thread{
      * @throws java.io.IOException
      */
     private static void storingTheObjectToDisk1(InputStream objectContent, String key) {
-        FileOutputStream fos = null;
         BufferedOutputStream bos = null;
         byte[] buff = new byte[50*1024];
         int count;
@@ -145,7 +144,7 @@ class ServerReq extends Thread{
 
     private void gettingDatafromS3(AmazonS3 s3, String fileName) throws IOException {
         Path path = Paths.get("/home/ubuntu/" + fileName);
-        //first checking if the OS are having the file in its disk
+        //first checking if the Origin Server is having the file in its disk
         if(Files.notExists(path)){
             // not present in the disk
             if(listingKeysOfAllTheObject(s3, fileName)){
@@ -165,23 +164,26 @@ class ServerReq extends Thread{
     public void run() {
 
         String fileName;
-        String message = null;
-        DataInputStream in;
+        DataInputStream in = null;
+        FileInputStream fis = null;
+        BufferedInputStream bis = null;
+        BufferedOutputStream out =null;
         byte[] arr = new byte[5000];
+        int count;
         try {
             // Reading the file name from Cache Server
             in = new DataInputStream(clientSocket.getInputStream());
             fileName = in.readUTF();
 
-            // calling the function to send the file back to the client
+            // calling the function to download the file into the disk
             gettingDatafromS3(s3, fileName);
+
             //read file from disk
-            FileInputStream fis = new FileInputStream("/home/ubuntu/" + fileName);
-            BufferedInputStream bis = new BufferedInputStream(fis);
+            fis = new FileInputStream("/home/ubuntu/" + fileName);
+            bis = new BufferedInputStream(fis);
             //output stream for socket
-            BufferedOutputStream out = new BufferedOutputStream(clientSocket.getOutputStream());
+            out = new BufferedOutputStream(clientSocket.getOutputStream());
             // writing to streams
-            int count;
             while ((count = bis.read(arr)) > 0) {
                 out.write(arr, 0, count);
             }
@@ -203,12 +205,14 @@ public class Origin_Server extends Thread {
 
     ServerSocket serverSocket;
     AmazonS3 s3;
+    int portNumber;
 
     /**
      * The constructor for Origin_Server Class
      * @return Object
      */
-    public Origin_Server() {
+    public Origin_Server(int portNumber) {
+        this.portNumber = portNumber;
         this.serverSocket = null;
     }
 
@@ -236,7 +240,7 @@ public class Origin_Server extends Thread {
      */
     public void run() {
         try {
-            serverSocket = new ServerSocket(60000);
+            serverSocket = new ServerSocket(portNumber);
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 (new ServerReq(clientSocket, s3, "contentfilesbucket")).start();
@@ -251,7 +255,8 @@ public class Origin_Server extends Thread {
      * @return void
      */
     public static void main(String[] args) {
-        Origin_Server origin_server = new Origin_Server();
+        int portNumber = Integer.parseInt(args[0]);
+        Origin_Server origin_server = new Origin_Server(portNumber);
         try{
 
             origin_server.setUp();

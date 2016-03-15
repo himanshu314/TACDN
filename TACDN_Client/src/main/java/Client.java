@@ -8,11 +8,13 @@ import java.net.Socket;
 
 public class Client {
 
-    String csIp, fileName;
+    String ipAddress, fileName;
+    int portName;
 
-    Client(String fileName) {
+    Client(String ipAddress, int portName, String fileName) {
+        this.ipAddress = ipAddress;
+        this.portName = portName;
         this.fileName = fileName;
-        csIp = "172.31.58.50";
     }
 
     /**
@@ -22,27 +24,24 @@ public class Client {
      */
     void requestFile() {
         byte[] arr;
-
+        Socket socket = null;
         InputStream is = null;
         BufferedOutputStream bos = null;
+        DataOutputStream out = null;
+        int bufferSize = 5000;
+        byte[] bytes = new byte[bufferSize];
+        int count;
 
         try {
-            System.out.println("Filename: " + fileName);
-            Socket socket = new Socket(csIp,6647);
-            //send file name to content server
-            OutputStream outputServer = socket.getOutputStream();
-            DataOutputStream out = new DataOutputStream(outputServer);
+            socket = new Socket(ipAddress,portName);
+            //sending the file name to content server
+            out = new DataOutputStream(socket.getOutputStream());
             out.writeUTF(fileName);
 
             //read file at client
             is = socket.getInputStream();
             //write file to client disk - buffer
             bos = new BufferedOutputStream(new FileOutputStream(fileName));
-
-            int bufferSize = 5000;
-            byte[] bytes = new byte[bufferSize];
-
-            int count;
             while ((count = is.read(bytes)) > 0) {
                 bos.write(bytes, 0, count);
             }
@@ -62,7 +61,10 @@ public class Client {
      * @return void
      */
     public static void main(String args[]) {
-        Client c = new Client(args[0]);
+        if( args.length <3){
+            System.out.println("Please provide the IPaddress, portNumber");
+        }
+        Client c = new Client(args[0], Integer.parseInt(args[1]), args[2]);
         c.requestFile();
     }
 }
