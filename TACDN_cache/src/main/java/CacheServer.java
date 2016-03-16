@@ -13,6 +13,7 @@ public class CacheServer {
     private String serverID;
     private String ipAdd;
     private String parentIPAdd;
+    private int portNum;
     private ArrayList<String> childrenIPAdd;
     private HashMap<String, CacheContent> contentList;
     private HashMap<String, ArrayList<String>> sessionMap;
@@ -38,6 +39,10 @@ public class CacheServer {
         return parentIPAdd;
     }
 
+    public int getPortNum() {
+        return portNum;
+    }
+
     public ArrayList<String> getChildrenIPAdd() {
         return childrenIPAdd;
     }
@@ -51,6 +56,7 @@ public class CacheServer {
     }
 
     public void startCS(int portNum) {
+        this.portNum = portNum;
         MainThread mt = new MainThread(portNum, this, parentIPAdd);
         mt.run();
     }

@@ -32,6 +32,8 @@ public class MainThread implements Runnable {
 
     public void run() {
         while (true) {
+            System.out.println("We are still in main thread");
+            System.out.flush();
             try {
                 Socket cliSoc = serSoc.accept();
                 WorkerThread cliThread = new WorkerThread(cacheServer, cliSoc);

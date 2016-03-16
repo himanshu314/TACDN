@@ -163,7 +163,7 @@ class ServerReq extends Thread{
      */
     public void run() {
 
-        String fileName;
+        String fileName = null;
         DataInputStream in = null;
         FileInputStream fis = null;
         BufferedInputStream bis = null;
@@ -173,8 +173,12 @@ class ServerReq extends Thread{
         try {
             // Reading the file name from Cache Server
             in = new DataInputStream(clientSocket.getInputStream());
-            fileName = in.readUTF();
-
+            try {
+                fileName = in.readUTF().trim();
+            } catch (EOFException eof) {
+                System.out.println("filename: " + fileName);
+            }
+            System.out.println("filename: " + fileName);
             // calling the function to download the file into the disk
             gettingDatafromS3(s3, fileName);
 
@@ -243,7 +247,7 @@ public class Origin_Server extends Thread {
             serverSocket = new ServerSocket(portNumber);
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                (new ServerReq(clientSocket, s3, "contentfilesbucket")).start();
+                (new ServerReq(clientSocket, s3, "originserver")).start();
             }
         } catch (Exception e) {
             e.printStackTrace();
