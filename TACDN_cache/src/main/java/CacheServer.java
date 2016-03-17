@@ -2,6 +2,7 @@ import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Himanshu on 3/3/2016.
@@ -17,6 +18,8 @@ public class CacheServer {
     private ArrayList<String> childrenIPAdd;
     private HashMap<String, CacheContent> contentList;
     private HashMap<String, ArrayList<String>> sessionMap;
+    private LRU lru;
+    public AtomicInteger pageCount;
 
     public CacheServer(String ipAdd, String serverID, String parentIPAdd) {
         this.serverID = serverID;
@@ -25,6 +28,12 @@ public class CacheServer {
         this.contentList = new HashMap<String,CacheContent>();
         this.sessionMap = new HashMap<String, ArrayList<String>>();
         this.childrenIPAdd = new ArrayList<String>();
+        this.lru = new LRU(3,this);
+        this.pageCount = new AtomicInteger(0);
+    }
+
+    public LRU getLru() {
+        return lru;
     }
 
     public String getServerID() {

@@ -20,20 +20,12 @@ public class WorkerThread implements Runnable {
 
     public void run() {
         try {
-            /*InputStream ip = soc.getInputStream();
-            BufferedReader br = new BufferedReader(new InputStreamReader(ip));*/
-            //BufferedInputStream mainBIS = new BufferedInputStream(soc.getInputStream());
+
             DataInputStream dis = new DataInputStream(soc.getInputStream());
             System.out.println("Inside run() of worker thread");
             while (true) {
-                /*byte[] bytes0 = new byte[5000];
-                int count0;*/
                 String msg = dis.readUTF().trim();
                 System.out.println("msg: " + msg);
-                /*while ((count0 = mainBIS.read(bytes0)) > 0) {
-                    System.out.println("Writing content worth: " + count0 + " bytes to input file");
-                    msg = new String(bytes0, 0, count0);
-                }*/
                 System.out.flush();
                 if (null != msg) {
                     //if (msg.contains("GET")) {
@@ -42,14 +34,7 @@ public class WorkerThread implements Runnable {
                         if(cacheServer.hasContent(contentName)) {
                             System.out.println("Content present in cache server");
                             String contentPath = cacheServer.getContentPath(contentName);
-                            /*File fr = new File(contentPath);
-                            byte[] bb = new byte[(int) fr.length()];
-                            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(fr));
-                            bis.read(bb, 0, bb.length);
-                            OutputStream out = soc.getOutputStream();
-                            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(out));
-                            bw.write(String.valueOf(bb), 0, bb.length);
-                            bw.close();*/
+
                             BufferedOutputStream clientOut = new BufferedOutputStream(soc.getOutputStream());
                             BufferedInputStream bis = new BufferedInputStream(new FileInputStream(contentPath));
                             int count2;
@@ -70,8 +55,6 @@ public class WorkerThread implements Runnable {
                             }
                             OutputStream out = parentSoc.getOutputStream();
                             System.out.println("Got the output stream");
-                            //BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(out));
-                            //bw.write(msg, 0, msg.length());
                             DataOutputStream dos = new DataOutputStream(out);
                             dos.writeUTF(msg);
                             System.out.println("Wrote msg: " + msg + " to outputstream");
@@ -88,7 +71,9 @@ public class WorkerThread implements Runnable {
                                 bos.write(bytes1, 0, count1);
                             }
                             System.out.println("File received, updating contentList");
-                            cacheServer.getContentList().put(msg, new CacheContent(msg, filePath, 40));
+                            CacheContent cc = new CacheContent(msg, filePath, 40);
+                            cacheServer.getContentList().put(msg, cc);
+                            cacheServer.getLru().addingTheContentInTheCache(cacheServer.pageCount.getAndIncrement(), cc);
                             bos.close();
 
                             //Send data to client
