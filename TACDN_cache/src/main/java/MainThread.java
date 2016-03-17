@@ -36,6 +36,7 @@ public class MainThread implements Runnable {
             System.out.flush();
             try {
                 Socket cliSoc = serSoc.accept();
+                System.out.println("Accepted connection from client");
                 WorkerThread cliThread = new WorkerThread(cacheServer, cliSoc);
                 cliThread.run();
             } catch (IOException e) {

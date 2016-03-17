@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 import org.apache.log4j.Logger;
 
@@ -14,17 +13,27 @@ public class WorkerThread implements Runnable {
     CacheServer cacheServer;
 
     public WorkerThread(CacheServer cacheServer, Socket soc) {
+        System.out.println("Creating new worker thread");
         this.soc = soc;
         this.cacheServer = cacheServer;
     }
 
     public void run() {
         try {
-            InputStream ip = soc.getInputStream();
-            BufferedReader br = new BufferedReader(new InputStreamReader(ip));
+            /*InputStream ip = soc.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(ip));*/
+            //BufferedInputStream mainBIS = new BufferedInputStream(soc.getInputStream());
+            DataInputStream dis = new DataInputStream(soc.getInputStream());
+            System.out.println("Inside run() of worker thread");
             while (true) {
-                String msg = br.readLine();
-               // System.out.println("msg: " + msg);
+                /*byte[] bytes0 = new byte[5000];
+                int count0;*/
+                String msg = dis.readUTF().trim();
+                System.out.println("msg: " + msg);
+                /*while ((count0 = mainBIS.read(bytes0)) > 0) {
+                    System.out.println("Writing content worth: " + count0 + " bytes to input file");
+                    msg = new String(bytes0, 0, count0);
+                }*/
                 System.out.flush();
                 if (null != msg) {
                     //if (msg.contains("GET")) {
@@ -40,6 +49,8 @@ public class WorkerThread implements Runnable {
                             OutputStream out = soc.getOutputStream();
                             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(out));
                             bw.write(String.valueOf(bb), 0, bb.length);
+                            bw.close();
+                            soc.close();
                         } else {
                             System.out.println("Content requested from origin server");
                             Socket parentSoc = new Socket(cacheServer.getParentIPAdd(), cacheServer.getPortNum());
@@ -53,16 +64,35 @@ public class WorkerThread implements Runnable {
                             DataOutputStream dos = new DataOutputStream(out);
                             dos.writeUTF(msg);
                             System.out.println("Wrote msg: " + msg + " to outputstream");
-                            InputStream is = parentSoc.getInputStream();
+
                             //write file to disk - buffer
-                            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(msg));
-                            int count;
-                            byte[] bytes = new byte[0];
-                            while ((count = is.read(bytes)) > 0) {
-                                bos.write(bytes, 0, count);
+                            InputStream is = parentSoc.getInputStream();
+                            String filePath = System.getProperty("user.dir") + "/" + msg.trim();
+                            System.out.println(filePath);
+                            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
+                            int count1;
+                            byte[] bytes1 = new byte[5000];
+                            while ((count1 = is.read(bytes1)) > 0) {
+                                System.out.println("Writing content worth: " + count1 + " bytes to input file");
+                                bos.write(bytes1, 0, count1);
                             }
                             System.out.println("File received, updating contentList");
                             cacheServer.getContentList().put(msg, new CacheContent(msg, msg, 40));
+                            bos.close();
+
+                            //Send data to client
+                            BufferedOutputStream clientOut = new BufferedOutputStream(soc.getOutputStream());
+                            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filePath));
+                            int count2;
+                            byte[] bytes2 = new byte[5000];
+                            while ((count2 = bis.read(bytes2)) > 0) {
+                                System.out.println("Writing content worth: " + count2 + " bytes to input file");
+                                clientOut.write(bytes2, 0, count2);
+                            }
+                            bis.close();
+                            clientOut.close();
+                            soc.close();
+                            break;
                         }
                    // } else if (msg.contains("UPDT")) {
 
