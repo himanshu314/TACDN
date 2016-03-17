@@ -42,15 +42,26 @@ public class WorkerThread implements Runnable {
                         if(cacheServer.hasContent(contentName)) {
                             System.out.println("Content present in cache server");
                             String contentPath = cacheServer.getContentPath(contentName);
-                            File fr = new File(contentPath);
+                            /*File fr = new File(contentPath);
                             byte[] bb = new byte[(int) fr.length()];
                             BufferedInputStream bis = new BufferedInputStream(new FileInputStream(fr));
                             bis.read(bb, 0, bb.length);
                             OutputStream out = soc.getOutputStream();
                             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(out));
                             bw.write(String.valueOf(bb), 0, bb.length);
-                            bw.close();
+                            bw.close();*/
+                            BufferedOutputStream clientOut = new BufferedOutputStream(soc.getOutputStream());
+                            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(contentPath));
+                            int count2;
+                            byte[] bytes2 = new byte[5000];
+                            while ((count2 = bis.read(bytes2)) > 0) {
+                                System.out.println("Writing content worth: " + count2 + " bytes to input file");
+                                clientOut.write(bytes2, 0, count2);
+                            }
+                            bis.close();
+                            clientOut.close();
                             soc.close();
+                            break;
                         } else {
                             System.out.println("Content requested from origin server");
                             Socket parentSoc = new Socket(cacheServer.getParentIPAdd(), cacheServer.getPortNum());
@@ -77,7 +88,7 @@ public class WorkerThread implements Runnable {
                                 bos.write(bytes1, 0, count1);
                             }
                             System.out.println("File received, updating contentList");
-                            cacheServer.getContentList().put(msg, new CacheContent(msg, msg, 40));
+                            cacheServer.getContentList().put(msg, new CacheContent(msg, filePath, 40));
                             bos.close();
 
                             //Send data to client
